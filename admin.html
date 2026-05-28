@@ -130,12 +130,12 @@
   let allRecords = [];
   let deleteTarget = null;
 
-  if (API_URL === 'https://script.google.com/macros/s/AKfycbxYgvfqHQ1CUO7RxlaRrpw6bv582HzkITU_kwp1kHk/exec') {
+  if (API_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL') {
     document.getElementById('config-banner').classList.add('show');
   }
 
   async function loadData() {
-    if (API_URL === 'https://script.google.com/macros/s/AKfycbxYgvfqHQ1CUO7RxlaRrpw6bv582HzkITU_kwp1kHk/exec') {
+    if (API_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL') {
       document.getElementById('tbody').innerHTML = '<tr><td colspan="6"><div class="empty">⚙️ 請先設定 API_URL</div></td></tr>';
       return;
     }
