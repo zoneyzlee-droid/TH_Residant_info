@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>後台管理 — LINE 登記系統</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --teal: #0F6E56; --teal-light: #E1F5EE; --teal-mid: #5DCAA5;
+    --amber: #854F0B; --amber-light: #FAEEDA;
+    --red: #A32D2D; --red-light: #FCEBEB;
+    --text: #1a1a1a; --text-sub: #555; --text-hint: #999;
+    --border: rgba(0,0,0,0.1); --bg: #f5f6f2; --surface: #fff;
+  }
+  body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 60px; }
+  .topbar { background: var(--teal); color: white; padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; }
+  .topbar h1 { font-size: 18px; font-weight: 700; }
+  .topbar a { color: rgba(255,255,255,0.85); font-size: 13px; text-decoration: none; }
+  .topbar a:hover { color: white; }
+  .content { max-width: 960px; margin: 0 auto; padding: 24px 16px; }
+  .config-banner { background: #fff3cd; border: 1px solid #ffc107; border-radius: 10px; padding: 14px 16px; margin-bottom: 20px; font-size: 13px; color: #856404; display: none; }
+  .config-banner.show { display: block; }
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 24px; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; text-align: center; }
+  .stat-num { font-size: 32px; font-weight: 700; color: var(--teal); line-height: 1; }
+  .stat-label { font-size: 12px; color: var(--text-hint); margin-top: 6px; }
+  .toolbar { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+  .toolbar input { flex: 1; min-width: 200px; height: 40px; padding: 0 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; font-family: inherit; background: var(--surface); }
+  .toolbar input:focus { outline: none; border-color: var(--teal); }
+  .btn { height: 40px; padding: 0 16px; border: none; border-radius: 8px; font-size: 14px; font-weight: 500; font-family: inherit; cursor: pointer; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; }
+  .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+  .btn-primary { background: var(--teal); color: white; }
+  .btn-primary:hover:not(:disabled) { background: #0a5a45; }
+  .btn-secondary { background: var(--surface); color: var(--text-sub); border: 1px solid var(--border); }
+  .btn-secondary:hover { background: var(--bg); }
+  .btn-danger { background: var(--red-light); color: var(--red); border: 1px solid rgba(163,45,45,0.2); }
+  .btn-danger:hover { background: #f7c1c1; }
+  .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 580px; }
+  th { text-align: left; padding: 12px 16px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-hint); background: var(--bg); border-bottom: 1px solid var(--border); }
+  td { padding: 13px 16px; border-bottom: 1px solid rgba(0,0,0,0.05); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(15,110,86,0.02); }
+  .unit-tag { font-weight: 700; background: rgba(15,110,86,0.08); color: var(--teal); padding: 3px 9px; border-radius: 6px; font-size: 13px; }
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+  .badge-new { background: var(--teal-light); color: var(--teal); }
+  .badge-updated { background: var(--amber-light); color: var(--amber); }
+  .btn-del { background: none; border: none; cursor: pointer; color: var(--text-hint); padding: 5px 7px; border-radius: 6px; font-size: 15px; }
+  .btn-del:hover { background: var(--red-light); color: var(--red); }
+  .empty { text-align: center; padding: 52px 16px; color: var(--text-hint); font-size: 14px; }
+  .section-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-hint); margin: 28px 0 12px; }
+  .floor-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; }
+  .floor-cell { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px; }
+  .floor-cell .fn { font-weight: 700; color: var(--teal); font-size: 15px; }
+  .floor-cell .fc { font-size: 12px; color: var(--text-hint); margin-top: 3px; }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: none; align-items: center; justify-content: center; z-index: 999; padding: 16px; }
+  .modal-overlay.show { display: flex; }
+  .modal { background: var(--surface); border-radius: 16px; padding: 28px; width: 100%; max-width: 380px; }
+  .modal h2 { font-size: 18px; font-weight: 700; margin-bottom: 10px; }
+  .modal p { color: var(--text-sub); font-size: 14px; line-height: 1.7; margin-bottom: 22px; }
+  .modal-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .spinner { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.4); border-top-color: white; border-radius: 50%; animation: spin .7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.7); display: none; align-items: center; justify-content: center; z-index: 888; }
+  .loading-overlay.show { display: flex; }
+  .loading-box { background: white; border-radius: 12px; padding: 24px 32px; box-shadow: 0 4px 24px rgba(0,0,0,0.1); text-align: center; font-size: 14px; color: var(--text-sub); }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <h1>🔐 後台管理</h1>
+  <a href="index.html">← 返回登記頁面</a>
+</div>
+
+<div class="content">
+  <div class="config-banner" id="config-banner">
+    ⚙️ 尚未設定 API 網址，請先完成 Google Apps Script 部署並更新 <code>API_URL</code>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat"><div class="stat-num" id="st-total">—</div><div class="stat-label">登記總戶數</div></div>
+    <div class="stat"><div class="stat-num" id="st-today">—</div><div class="stat-label">今日新增</div></div>
+    <div class="stat"><div class="stat-num" id="st-updated">—</div><div class="stat-label">已更新筆數</div></div>
+    <div class="stat"><div class="stat-num" id="st-floors">—</div><div class="stat-label">覆蓋樓層</div></div>
+  </div>
+
+  <div class="toolbar">
+    <input type="text" id="search" placeholder="搜尋戶號、姓名或 LINE 帳號…" oninput="renderTable()">
+    <button class="btn btn-secondary" onclick="loadData()">🔄 重新整理</button>
+    <button class="btn btn-primary" onclick="exportCSV()">📥 匯出 CSV</button>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>戶號</th><th>代表人</th><th>LINE 帳號</th><th>登記時間</th><th>狀態</th><th></th></tr>
+      </thead>
+      <tbody id="tbody">
+        <tr><td colspan="6"><div class="empty">載入中...</div></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section-title">各樓層登記狀況</div>
+  <div class="floor-grid" id="floor-grid"></div>
+</div>
+
+<!-- 刪除確認 -->
+<div class="modal-overlay" id="modal-del">
+  <div class="modal">
+    <h2>確認刪除</h2>
+    <p>即將刪除 <strong id="del-info"></strong> 的登記資料，此操作無法復原。</p>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" onclick="closeModal('modal-del')">取消</button>
+      <button class="btn btn-danger" id="btn-confirm-del" onclick="doDelete()">確認刪除</button>
+    </div>
+  </div>
+</div>
+
+<div class="loading-overlay" id="loading">
+  <div class="loading-box">⏳ 處理中，請稍候...</div>
+</div>
+
+<script>
+  // ★ 部署後請將這裡換成你的 Google Apps Script 網址 ★
+  const API_URL = 'https://script.google.com/macros/s/AKfycbxYgvfqHQ1CUO7RxlaRrpw6bv582HzkITU_kwp1kHk/exec';
+
+  let allRecords = [];
+  let deleteTarget = null;
+
+  if (API_URL === 'https://script.google.com/macros/s/AKfycbxYgvfqHQ1CUO7RxlaRrpw6bv582HzkITU_kwp1kHk/exec') {
+    document.getElementById('config-banner').classList.add('show');
+  }
+
+  async function loadData() {
+    if (API_URL === 'https://script.google.com/macros/s/AKfycbxYgvfqHQ1CUO7RxlaRrpw6bv582HzkITU_kwp1kHk/exec') {
+      document.getElementById('tbody').innerHTML = '<tr><td colspan="6"><div class="empty">⚙️ 請先設定 API_URL</div></td></tr>';
+      return;
+    }
+    try {
+      const res = await fetch(`${API_URL}?action=getAll`);
+      const data = await res.json();
+      if (data.ok) { allRecords = data.data; renderTable(); updateStats(); renderFloors(); }
+      else { showTableError('載入失敗：' + data.error); }
+    } catch (e) { showTableError('網路錯誤，請重新整理'); }
+  }
+
+  function showTableError(msg) {
+    document.getElementById('tbody').innerHTML = `<tr><td colspan="6"><div class="empty">❌ ${msg}</div></td></tr>`;
+  }
+
+  function getToday() {
+    return new Date().toLocaleDateString('zh-TW', { timeZone: 'Asia/Taipei' });
+  }
+
+  function updateStats() {
+    document.getElementById('st-total').textContent = allRecords.length;
+    const today = getToday().replace(/\//g, '/');
+    document.getElementById('st-today').textContent = allRecords.filter(r => r.date && r.date.startsWith(today.replace(/-/g,'/'))).length;
+    document.getElementById('st-updated').textContent = allRecords.filter(r => r.status === '已更新').length;
+    const floors = new Set(allRecords.map(r => (r.unit.match(/(\d+F)/i)||['','其他'])[1].toUpperCase()));
+    document.getElementById('st-floors').textContent = floors.size;
+  }
+
+  function renderTable() {
+    const q = document.getElementById('search').value.toLowerCase();
+    let filtered = q ? allRecords.filter(r =>
+      r.unit.toLowerCase().includes(q) || r.name.includes(q) || (r.line||'').toLowerCase().includes(q)
+    ) : [...allRecords];
+    filtered.sort((a, b) => a.unit.localeCompare(b.unit, 'zh-TW', { numeric: true }));
+    const tbody = document.getElementById('tbody');
+    if (!filtered.length) {
+      tbody.innerHTML = '<tr><td colspan="6"><div class="empty">📭 尚無符合資料</div></td></tr>'; return;
+    }
+    tbody.innerHTML = filtered.map(r => `
+      <tr>
+        <td><span class="unit-tag">${r.unit}</span></td>
+        <td><strong>${r.name}</strong></td>
+        <td style="color:#555">${r.line||'—'}</td>
+        <td style="font-size:12px;color:#999">${r.date||'—'}</td>
+        <td><span class="badge ${r.status==='已更新'?'badge-updated':'badge-new'}">${r.status||'新登記'}</span></td>
+        <td><button class="btn-del" onclick="showDelete('${r.unit}','${r.name}')" title="刪除">🗑</button></td>
+      </tr>`).join('');
+  }
+
+  function renderFloors() {
+    const map = {};
+    allRecords.forEach(r => {
+      const f = (r.unit.match(/(\d+F)/i)||['','其他'])[1].toUpperCase();
+      map[f] = (map[f]||0) + 1;
+    });
+    const keys = Object.keys(map).sort((a,b)=>{const na=parseInt(a),nb=parseInt(b);return isNaN(na)||isNaN(nb)?a.localeCompare(b):na-nb;});
+    const el = document.getElementById('floor-grid');
+    if (!keys.length) { el.innerHTML='<p style="font-size:13px;color:#999">尚無資料</p>'; return; }
+    el.innerHTML = keys.map(f=>`<div class="floor-cell"><div class="fn">${f}</div><div class="fc">${map[f]} 戶</div></div>`).join('');
+  }
+
+  function showDelete(unit, name) {
+    deleteTarget = { unit, name };
+    document.getElementById('del-info').textContent = `${unit} ${name}`;
+    document.getElementById('modal-del').classList.add('show');
+  }
+
+  async function doDelete() {
+    if (!deleteTarget) return;
+    closeModal('modal-del');
+    document.getElementById('loading').classList.add('show');
+    try {
+      const res = await fetch(API_URL, { method:'POST', body: JSON.stringify({ action:'delete', ...deleteTarget }) });
+      const data = await res.json();
+      if (data.ok) { await loadData(); }
+      else { alert('刪除失敗：' + data.error); }
+    } catch(e) { alert('網路錯誤'); }
+    finally { document.getElementById('loading').classList.remove('show'); deleteTarget = null; }
+  }
+
+  function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+  function exportCSV() {
+    if (!allRecords.length) { alert('尚無資料可匯出'); return; }
+    const sorted = [...allRecords].sort((a,b)=>a.unit.localeCompare(b.unit,'zh-TW',{numeric:true}));
+    const header = '戶號,代表人,LINE帳號,登記時間,最後更新,狀態';
+    const rows = sorted.map(r=>`"${r.unit}","${r.name}","${r.line}","${r.date}","${r.updated||''}","${r.status}"`);
+    const csv = '\uFEFF' + [header,...rows].join('\n');
+    const a = document.createElement('a');
+    a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+    a.download = 'LINE住戶登記_' + getToday().replace(/\//g,'-') + '.csv';
+    a.click();
+  }
+
+  loadData();
+</script>
+</body>
+</html>

@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>住戶 LINE 帳號登記</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --teal: #0F6E56; --teal-light: #E1F5EE; --teal-mid: #5DCAA5;
+    --amber: #854F0B; --amber-light: #FAEEDA;
+    --text: #1a1a1a; --text-sub: #555; --text-hint: #999;
+    --border: rgba(0,0,0,0.12); --bg: #f5f6f2; --surface: #fff;
+  }
+  body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 20px 16px 60px; }
+  .container { max-width: 540px; margin: 0 auto; }
+  .header { background: var(--teal); color: white; border-radius: 16px 16px 0 0; padding: 28px 24px; display: flex; gap: 16px; align-items: center; }
+  .header-icon { width: 52px; height: 52px; background: rgba(255,255,255,0.18); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0; }
+  .header h1 { font-size: 20px; font-weight: 700; }
+  .header p { font-size: 13px; opacity: 0.8; margin-top: 4px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-top: none; border-radius: 0 0 16px 16px; padding: 28px 24px; }
+  .step-bar { display: flex; gap: 6px; margin-bottom: 24px; }
+  .step { flex: 1; height: 4px; border-radius: 2px; background: #e8e8e8; transition: background .3s; }
+  .step.done { background: var(--teal); }
+  .step.active { background: var(--teal-mid); }
+  .form-group { margin-bottom: 20px; }
+  label { display: block; font-size: 13px; font-weight: 500; color: var(--text-sub); margin-bottom: 7px; }
+  label .req { color: #c0392b; }
+  input[type=text] { width: 100%; height: 44px; padding: 0 14px; border: 1px solid var(--border); border-radius: 10px; font-size: 15px; font-family: inherit; color: var(--text); background: var(--surface); transition: border .2s, box-shadow .2s; }
+  input:focus { outline: none; border-color: var(--teal); box-shadow: 0 0 0 3px rgba(15,110,86,0.12); }
+  .hint { font-size: 12px; color: var(--text-hint); margin-top: 5px; }
+  .alert { border-radius: 10px; padding: 13px 16px; font-size: 14px; line-height: 1.6; margin-bottom: 18px; display: none; gap: 12px; align-items: flex-start; }
+  .alert.show { display: flex; }
+  .alert-icon { flex-shrink: 0; font-size: 20px; }
+  .alert-info { background: var(--teal-light); border: 1px solid rgba(15,110,86,0.2); color: #085041; }
+  .alert-warn { background: var(--amber-light); border: 1px solid rgba(133,79,11,0.25); color: var(--amber); }
+  .alert-err { background: #FCEBEB; border: 1px solid rgba(163,45,45,0.2); color: #A32D2D; }
+  .existing-box { background: #f8faf9; border: 1px solid rgba(15,110,86,0.2); border-radius: 10px; padding: 14px; margin-bottom: 18px; display: none; }
+  .existing-box.show { display: block; }
+  .box-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--teal); margin-bottom: 10px; }
+  .info-row { display: flex; gap: 8px; padding: 5px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 13px; }
+  .info-row:last-child { border-bottom: none; }
+  .info-label { color: var(--text-hint); width: 70px; flex-shrink: 0; }
+  .info-val { color: var(--text); font-weight: 500; }
+  .btn-group { display: grid; gap: 10px; }
+  .btn { width: 100%; padding: 13px; border: none; border-radius: 10px; font-size: 15px; font-weight: 500; font-family: inherit; cursor: pointer; transition: all .2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
+  .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+  .btn-primary { background: var(--teal); color: white; }
+  .btn-primary:hover:not(:disabled) { background: #0a5a45; }
+  .btn-secondary { background: transparent; color: var(--teal); border: 1.5px solid var(--teal); }
+  .btn-secondary:hover:not(:disabled) { background: var(--teal-light); }
+  .spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.4); border-top-color: white; border-radius: 50%; animation: spin .7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .success-screen { text-align: center; padding: 32px 0 8px; display: none; }
+  .success-icon { width: 72px; height: 72px; background: var(--teal-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 34px; }
+  .success-screen h2 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+  .success-screen p { color: var(--text-sub); font-size: 14px; margin-bottom: 28px; line-height: 1.7; }
+  .admin-link { text-align: center; margin-top: 20px; }
+  .admin-link a { font-size: 13px; color: var(--text-hint); text-decoration: none; }
+  .admin-link a:hover { color: var(--teal); }
+  .config-banner { background: #fff3cd; border: 1px solid #ffc107; border-radius: 10px; padding: 14px 16px; margin-bottom: 20px; font-size: 13px; color: #856404; display: none; }
+  .config-banner.show { display: block; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="header-icon">💬</div>
+    <div>
+      <h1>住戶 LINE 帳號登記</h1>
+      <p>請填寫您的戶號、姓名與 LINE 帳號</p>
+    </div>
+  </div>
+  <div class="card">
+    <div class="config-banner" id="config-banner">
+      ⚙️ 尚未設定 API 網址，請先完成 Google Apps Script 部署並更新 <code>API_URL</code>
+    </div>
+
+    <div class="step-bar">
+      <div class="step done" id="s1"></div>
+      <div class="step active" id="s2"></div>
+      <div class="step" id="s3"></div>
+    </div>
+
+    <div id="form-area">
+      <div class="alert alert-info show" id="alert-tip">
+        <span class="alert-icon">ℹ️</span>
+        <span>填完戶號與姓名後，系統會自動查核是否已有登記紀錄</span>
+      </div>
+      <div class="alert alert-warn" id="alert-dup">
+        <span class="alert-icon">⚠️</span>
+        <div><strong>偵測到相同紀錄！</strong><br>此戶號與代表人已有登記資料，請按下方按鈕修改。</div>
+      </div>
+      <div class="alert alert-err" id="alert-err">
+        <span class="alert-icon">❌</span>
+        <span id="err-msg">發生錯誤，請稍後再試</span>
+      </div>
+
+      <div class="existing-box" id="existing-box">
+        <div class="box-title">📋 現有登記資料</div>
+        <div class="info-row"><span class="info-label">戶號</span><span class="info-val" id="ex-unit">—</span></div>
+        <div class="info-row"><span class="info-label">代表人</span><span class="info-val" id="ex-name">—</span></div>
+        <div class="info-row"><span class="info-label">LINE</span><span class="info-val" id="ex-line">—</span></div>
+        <div class="info-row"><span class="info-label">登記時間</span><span class="info-val" id="ex-date">—</span></div>
+      </div>
+
+      <div class="form-group">
+        <label>樓層及戶號 <span class="req">*</span></label>
+        <input type="text" id="unit" placeholder="例：10F-1" oninput="onInputChange()" autocomplete="off">
+        <p class="hint">格式如 10F-1、3F-2</p>
+      </div>
+      <div class="form-group">
+        <label>代表人姓名 <span class="req">*</span></label>
+        <input type="text" id="name" placeholder="例：王大明" oninput="onInputChange()" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label>LINE 代表帳號 <span class="req">*</span></label>
+        <input type="text" id="line" placeholder="例：@yourname 或手機號碼">
+        <p class="hint">可填 LINE ID（@開頭）或綁定手機號碼</p>
+      </div>
+
+      <div class="btn-group">
+        <button class="btn btn-primary" id="btn-submit" onclick="submitForm()">確認送出</button>
+        <button class="btn btn-secondary" id="btn-edit" style="display:none" onclick="startEdit()">✏️ 修改現有資料</button>
+      </div>
+    </div>
+
+    <div class="success-screen" id="success-screen">
+      <div class="success-icon">✅</div>
+      <h2>登記完成！</h2>
+      <p>感謝您完成 LINE 帳號登記<br>管理員將盡快將您加入社群</p>
+      <button class="btn btn-secondary" onclick="resetForm()">返回（登記其他住戶）</button>
+    </div>
+  </div>
+  <div class="admin-link"><a href="admin.html">🔐 後台管理</a></div>
+</div>
+
+<script>
+  // ★ 部署後請將這裡換成你的 Google Apps Script 網址 ★
+  const API_URL = 'https://script.google.com/macros/s/AKfycbxYgvfqHQ1CUO7RxlaRrpw6bv582HzkITU_kwp1kHk/exec';
+
+  let dupRecord = null;
+  let editMode = false;
+  let checkTimer = null;
+
+  if (API_URL === 'https://script.google.com/macros/s/AKfycbxYgvfqHQ1CUO7RxlaRrpw6bv582HzkITU_kwp1kHk/exec') {
+    document.getElementById('config-banner').classList.add('show');
+  }
+
+  function setStep(n) {
+    for (let i = 1; i <= 3; i++) {
+      const el = document.getElementById('s' + i);
+      el.className = 'step' + (i < n ? ' done' : i === n ? ' active' : '');
+    }
+  }
+
+  function showError(msg) {
+    document.getElementById('err-msg').textContent = msg;
+    document.getElementById('alert-err').classList.add('show');
+    setTimeout(() => document.getElementById('alert-err').classList.remove('show'), 5000);
+  }
+
+  function onInputChange() {
+    if (editMode) return;
+    clearTimeout(checkTimer);
+    checkTimer = setTimeout(checkDuplicate, 600);
+  }
+
+  async function checkDuplicate() {
+    const unit = document.getElementById('unit').value.trim();
+    const name = document.getElementById('name').value.trim();
+    if (!unit || !name || API_URL === 'https://script.google.com/macros/s/AKfycbxYgvfqHQ1CUO7RxlaRrpw6bv582HzkITU_kwp1kHk/exec') return;
+
+    try {
+      const res = await fetch(`${API_URL}?action=check&unit=${encodeURIComponent(unit)}&name=${encodeURIComponent(name)}`);
+      const data = await res.json();
+      if (data.exists) {
+        dupRecord = data.record;
+        document.getElementById('alert-dup').classList.add('show');
+        document.getElementById('existing-box').classList.add('show');
+        document.getElementById('ex-unit').textContent = data.record.unit;
+        document.getElementById('ex-name').textContent = data.record.name;
+        document.getElementById('ex-line').textContent = data.record.line;
+        document.getElementById('ex-date').textContent = data.record.date;
+        document.getElementById('line').value = data.record.line;
+        document.getElementById('btn-edit').style.display = '';
+      } else {
+        clearDup();
+      }
+    } catch (e) { /* 網路錯誤靜默處理 */ }
+  }
+
+  function clearDup() {
+    dupRecord = null;
+    document.getElementById('alert-dup').classList.remove('show');
+    document.getElementById('existing-box').classList.remove('show');
+    document.getElementById('btn-edit').style.display = 'none';
+    if (!editMode) document.getElementById('line').value = '';
+  }
+
+  function startEdit() {
+    editMode = true;
+    document.getElementById('alert-dup').classList.remove('show');
+    document.getElementById('existing-box').classList.remove('show');
+    document.getElementById('btn-edit').style.display = 'none';
+    document.getElementById('btn-submit').textContent = '確認更新';
+    document.getElementById('alert-tip').innerHTML = '<span class="alert-icon">✏️</span><span>修改模式 — 請更新 LINE 帳號後按確認更新</span>';
+    document.getElementById('line').focus();
+    setStep(2);
+  }
+
+  async function submitForm() {
+    const unit = document.getElementById('unit').value.trim();
+    const name = document.getElementById('name').value.trim();
+    const line = document.getElementById('line').value.trim();
+    if (!unit || !name || !line) { alert('請填寫所有必填欄位！'); return; }
+    if (dupRecord && !editMode) { alert('此戶號已有登記資料，請按「修改現有資料」'); return; }
+
+    const btn = document.getElementById('btn-submit');
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner"></div> 處理中...';
+
+    try {
+      const action = editMode ? 'update' : 'submit';
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action, unit, name, line })
+      });
+      const data = await res.json();
+
+      if (data.ok) {
+        setStep(3);
+        document.getElementById('form-area').style.display = 'none';
+        document.getElementById('success-screen').style.display = 'block';
+      } else if (data.duplicate) {
+        dupRecord = data.record;
+        document.getElementById('alert-dup').classList.add('show');
+        document.getElementById('btn-edit').style.display = '';
+        btn.disabled = false;
+        btn.textContent = '確認送出';
+      } else {
+        showError(data.error || '操作失敗，請稍後再試');
+        btn.disabled = false;
+        btn.textContent = editMode ? '確認更新' : '確認送出';
+      }
+    } catch (e) {
+      showError('網路錯誤，請檢查連線後再試');
+      btn.disabled = false;
+      btn.textContent = editMode ? '確認更新' : '確認送出';
+    }
+  }
+
+  function resetForm() {
+    editMode = false; dupRecord = null;
+    ['unit','name','line'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('form-area').style.display = '';
+    document.getElementById('success-screen').style.display = 'none';
+    document.getElementById('btn-submit').textContent = '確認送出';
+    document.getElementById('btn-edit').style.display = 'none';
+    document.getElementById('alert-dup').classList.remove('show');
+    document.getElementById('existing-box').classList.remove('show');
+    document.getElementById('alert-tip').innerHTML = '<span class="alert-icon">ℹ️</span><span>填完戶號與姓名後，系統會自動查核是否已有登記紀錄</span>';
+    setStep(1);
+  }
+</script>
+</body>
+</html>
