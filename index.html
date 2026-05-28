@@ -138,7 +138,7 @@
 
 <script>
   // ★ 部署後請將這裡換成你的 Google Apps Script 網址 ★
-  const API_URL = 'https://script.google.com/macros/s/AKfycbxYgvfqHQ1CUO7RxlaRrpw6bv582HzkITU_kwp1kHk/exec';
+  const API_URL = 'https://script.google.com/macros/s/AKfycbzYhaPo0rch8JuKAh-dDAzpgyBrd4h4N81R5qQ1xHJea8OII6Mv9mMncOQlaBI-pYcK/exec';
 
   let dupRecord = null;
   let editMode = false;
@@ -170,7 +170,7 @@
   async function checkDuplicate() {
     const unit = document.getElementById('unit').value.trim();
     const name = document.getElementById('name').value.trim();
-    if (!unit || !name || API_URL === 'https://script.google.com/macros/s/AKfycbxYgvfqHQ1CUO7RxlaRrpw6bv582HzkITU_kwp1kHk/exec') return;
+    if (!unit || !name || API_URL === 'https://script.google.com/macros/s/AKfycbzYhaPo0rch8JuKAh-dDAzpgyBrd4h4N81R5qQ1xHJea8OII6Mv9mMncOQlaBI-pYcK/exec') return;
 
     try {
       const res = await fetch(`${API_URL}?action=check&unit=${encodeURIComponent(unit)}&name=${encodeURIComponent(name)}`);
