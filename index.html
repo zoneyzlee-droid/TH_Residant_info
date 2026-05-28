@@ -138,7 +138,7 @@
 
 <script>
   // ★ 部署後請將這裡換成你的 Google Apps Script 網址 ★
-  const API_URL = 'https://script.google.com/macros/s/AKfycbzYhaPo0rch8JuKAh-dDAzpgyBrd4h4N81R5qQ1xHJea8OII6Mv9mMncOQlaBI-pYcK/exec';
+  const API_URL = 'https://script.google.com/macros/s/AKfycbwtRz-xVpxj_ZRve7w-OgnkBrrQZT1lAQHg8Kx_x_9LGy0JvZZc6b8GoYUCpJbw0a5g/exec';
 
   let dupRecord = null;
   let editMode = false;
@@ -170,7 +170,7 @@
   async function checkDuplicate() {
     const unit = document.getElementById('unit').value.trim();
     const name = document.getElementById('name').value.trim();
-    if (!unit || !name || API_URL === 'https://script.google.com/macros/s/AKfycbzYhaPo0rch8JuKAh-dDAzpgyBrd4h4N81R5qQ1xHJea8OII6Mv9mMncOQlaBI-pYcK/exec') return;
+    if (!unit || !name || API_URL === 'https://script.google.com/macros/s/AKfycbwtRz-xVpxj_ZRve7w-OgnkBrrQZT1lAQHg8Kx_x_9LGy0JvZZc6b8GoYUCpJbw0a5g/exec') return;
 
     try {
       const res = await fetch(`${API_URL}?action=check&unit=${encodeURIComponent(unit)}&name=${encodeURIComponent(name)}`);
@@ -184,7 +184,12 @@
         document.getElementById('ex-line').textContent = data.record.line;
         document.getElementById('ex-date').textContent = data.record.date;
         document.getElementById('line').value = data.record.line;
-        document.getElementById('btn-edit').style.display = '';
+        if (data.record.editCount >= 1) {
+          document.getElementById('btn-edit').style.display = 'none';
+          showError('此戶已使用過一次修改機會，如需變更請聯絡管理員');
+        } else {
+          document.getElementById('btn-edit').style.display = '';
+        }
       } else {
         clearDup();
       }
@@ -233,6 +238,14 @@
         setStep(3);
         document.getElementById('form-area').style.display = 'none';
         document.getElementById('success-screen').style.display = 'block';
+      } else if (data.locked) {
+        // 已用過修改機會
+        document.getElementById('alert-dup').classList.remove('show');
+        document.getElementById('existing-box').classList.remove('show');
+        document.getElementById('btn-edit').style.display = 'none';
+        showError('此戶已使用過一次修改機會，如需變更請聯絡管理員');
+        btn.disabled = false;
+        btn.textContent = '確認更新';
       } else if (data.duplicate) {
         dupRecord = data.record;
         document.getElementById('alert-dup').classList.add('show');

@@ -69,6 +69,39 @@
 </style>
 </head>
 <body>
+<div id="pw-overlay" style="position:fixed;inset:0;background:#f5f6f2;display:flex;align-items:center;justify-content:center;z-index:9999;">
+  <div style="background:white;border-radius:16px;padding:36px 32px;width:100%;max-width:360px;border:1px solid rgba(0,0,0,0.1);text-align:center;">
+    <div style="font-size:40px;margin-bottom:16px;">🔐</div>
+    <h2 style="font-size:20px;font-weight:700;margin-bottom:8px;">後台管理</h2>
+    <p style="font-size:14px;color:#999;margin-bottom:24px;">請輸入管理員密碼</p>
+    <input type="password" id="pw-input" placeholder="輸入密碼" onkeydown="if(event.key==='Enter')checkPw()"
+      style="width:100%;height:44px;padding:0 14px;border:1px solid rgba(0,0,0,0.15);border-radius:10px;font-size:15px;font-family:inherit;margin-bottom:12px;outline:none;">
+    <div id="pw-err" style="font-size:13px;color:#A32D2D;margin-bottom:10px;min-height:18px;"></div>
+    <button onclick="checkPw()"
+      style="width:100%;padding:13px;background:#0F6E56;color:white;border:none;border-radius:10px;font-size:15px;font-weight:500;cursor:pointer;">
+      進入後台
+    </button>
+  </div>
+</div>
+<script>
+  (function(){
+    if(sessionStorage.getItem('admin_auth')==='ok'){
+      document.getElementById('pw-overlay').style.display='none';
+    }
+  })();
+  function checkPw(){
+    const v = document.getElementById('pw-input').value;
+    if(v==='bp6bp6jo4ji3!'){
+      sessionStorage.setItem('admin_auth','ok');
+      document.getElementById('pw-overlay').style.display='none';
+    } else {
+      document.getElementById('pw-err').textContent='密碼錯誤，請再試一次';
+      document.getElementById('pw-input').value='';
+      document.getElementById('pw-input').focus();
+    }
+  }
+</script>
+
 <div class="topbar">
   <h1>🔐 後台管理</h1>
   <a href="index.html">← 返回登記頁面</a>
@@ -125,7 +158,7 @@
 
 <script>
   // ★ 部署後請將這裡換成你的 Google Apps Script 網址 ★
-  const API_URL = 'https://script.google.com/macros/s/AKfycbzYhaPo0rch8JuKAh-dDAzpgyBrd4h4N81R5qQ1xHJea8OII6Mv9mMncOQlaBI-pYcK/exec';
+  const API_URL = 'https://script.google.com/macros/s/AKfycbwtRz-xVpxj_ZRve7w-OgnkBrrQZT1lAQHg8Kx_x_9LGy0JvZZc6b8GoYUCpJbw0a5g/exec';
 
   let allRecords = [];
   let deleteTarget = null;
