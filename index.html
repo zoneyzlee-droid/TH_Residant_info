@@ -59,6 +59,15 @@
   .admin-link { text-align: center; margin-top: 20px; }
   .admin-link a { font-size: 13px; color: var(--text-hint); text-decoration: none; }
   .admin-link a:hover { color: var(--teal); }
+  .consent-box { background: #f8faf9; border: 1px solid rgba(15,110,86,0.25); border-radius: 12px; padding: 18px; margin-bottom: 20px; }
+  .consent-title { font-size: 13px; font-weight: 700; color: var(--teal); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+  .consent-text { font-size: 13px; color: var(--text-sub); line-height: 1.8; margin-bottom: 14px; }
+  .consent-text p { margin-bottom: 8px; }
+  .consent-text p:last-child { margin-bottom: 0; }
+  .consent-check { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; }
+  .consent-check input[type=checkbox] { width: 18px; height: 18px; margin-top: 2px; flex-shrink: 0; accent-color: var(--teal); cursor: pointer; }
+  .consent-check span { font-size: 14px; font-weight: 500; color: var(--text); line-height: 1.5; }
+  .form-locked { opacity: 0.4; pointer-events: none; user-select: none; }
   .config-banner { background: #fff3cd; border: 1px solid #ffc107; border-radius: 10px; padding: 14px 16px; margin-bottom: 20px; font-size: 13px; color: #856404; display: none; }
   .config-banner.show { display: block; }
 </style>
@@ -84,6 +93,20 @@
     </div>
 
     <div id="form-area">
+      <div class="consent-box">
+        <div class="consent-title">📋 個人資料蒐集告知事項</div>
+        <div class="consent-text">
+          <p>本表單由本社區管理委員會蒐集，目的為辦理線上區分所有權人會議之身分確認、會議通知、LINE 聯繫及相關會務作業使用。</p>
+          <p>蒐集資料包含戶號、代表人姓名、LINE ID。資料僅供本次線上區權會及社區會務聯繫使用，不作為其他目的，亦不任意提供予無關第三人。</p>
+          <p>住戶得依個人資料保護法規定，向管理委員會請求查詢、閱覽、補充、更正、停止蒐集處理利用或刪除本人資料。若未提供必要資料，可能導致無法完成線上會議身分確認、通知或參與安排。</p>
+        </div>
+        <label class="consent-check">
+          <input type="checkbox" id="consent-cb" onchange="toggleConsent()">
+          <span>我已閱讀並同意上述個人資料蒐集告知事項</span>
+        </label>
+      </div>
+
+      <div id="form-fields" class="form-locked">
       <div class="alert alert-info show" id="alert-tip">
         <span class="alert-icon">ℹ️</span>
         <span>填完戶號與姓名後，系統會自動查核是否已有登記紀錄</span>
@@ -124,6 +147,7 @@
         <button class="btn btn-primary" id="btn-submit" onclick="submitForm()">確認送出</button>
         <button class="btn btn-secondary" id="btn-edit" style="display:none" onclick="startEdit()">✏️ 修改現有資料</button>
       </div>
+      </div><!-- end form-fields -->
     </div>
 
     <div class="success-screen" id="success-screen">
@@ -141,6 +165,16 @@
   const API_URL = 'https://script.google.com/macros/s/AKfycbwtRz-xVpxj_ZRve7w-OgnkBrrQZT1lAQHg8Kx_x_9LGy0JvZZc6b8GoYUCpJbw0a5g/exec';
 
   let dupRecord = null;
+
+  function toggleConsent() {
+    const checked = document.getElementById('consent-cb').checked;
+    const fields = document.getElementById('form-fields');
+    if (checked) {
+      fields.classList.remove('form-locked');
+    } else {
+      fields.classList.add('form-locked');
+    }
+  }
   let editMode = false;
   let checkTimer = null;
 
@@ -219,6 +253,7 @@
     const unit = document.getElementById('unit').value.trim();
     const name = document.getElementById('name').value.trim();
     const line = document.getElementById('line').value.trim();
+    if (!document.getElementById('consent-cb').checked) { alert('請先勾選同意個人資料蒐集告知事項！'); return; }
     if (!unit || !name || !line) { alert('請填寫所有必填欄位！'); return; }
     if (dupRecord && !editMode) { alert('此戶號已有登記資料，請按「修改現有資料」'); return; }
 
